@@ -7,7 +7,7 @@ import {
 
 const initialState = {
   data: {
-    people: []
+    profile: {}
   },
   status: NOT_STARTED,
   error: {}
@@ -17,19 +17,19 @@ const peopleReducer = function(state = initialState, action) {
   const { type, payload } = action;
 
   switch (type) {
-    case PEOPLE_GET_PENDING: {
+    case PROFILE_GET_PENDING: {
       return { ...state, status: LOADING };
     }
 
-    case PEOPLE_GET_RESOLVED: {
+    case PROFILE_GET_RESOLVED: {
       return {
         ...state,
         status: SUCCESS,
-        data: { ...state.data, people: payload }
+        data: { ...state.data, profile: payload }
       };
     }
 
-    case PEOPLE_GET_REJECTED: {
+    case PROFILE_GET_REJECTED: {
       return { ...state, status: ERROR };
     }
 
@@ -39,4 +39,4 @@ const peopleReducer = function(state = initialState, action) {
   }
 };
 
-export default peopleReducer;
+export default profileReducer;

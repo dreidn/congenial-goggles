@@ -8,7 +8,7 @@ import { ConnectedRouter, routerMiddleware } from "react-router-redux";
 import { composeWithDevTools } from "redux-devtools-extension/developmentOnly";
 import { Route } from "react-router-dom";
 import rootReducer from "./reducers";
-import { Home } from "./components/pages";
+import { Home, Profile } from "./components/pages";
 // import './style/main.scss';
 
 const history = createHistory();
@@ -27,6 +27,7 @@ ReactDOM.render(
           <div>
             <div className="innermax">
               <Route exact path="/" component={Home} />
+              <Route path="/profile/:id" component={Profile} />
             </div>
           </div>
         </Route>

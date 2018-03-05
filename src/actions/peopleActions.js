@@ -1,26 +1,46 @@
 import axios from "axios";
 
-const API_ROOT = "http://swapi.co";
+import * as actionTypes from "./";
+
+const API_ROOT = "https://swapi.co/api";
 
 export const getPeople = () => {
-  const url = `${API_ROOT}/people`;
+  return dispatch => {
+    const url = `${API_ROOT}/people/`;
+    dispatch({ type: actionTypes.PEOPLE_GET_PENDING });
 
-  axios.get(url).then(response => {
-      console.log("Gotg people data," JSON.stringify(response));
-      
-  }).catch(err => {
-      console.log(err);
-  });
+    axios({
+      method: "get",
+      responseType: "json",
+      url
+    })
+      .then(response => {
+        dispatch({
+          type: actionTypes.PEOPLE_GET_RESOLVED,
+          payload: response.data.results
+        });
+        console.log("Got people data,", JSON.stringify(response));
+      })
+      .catch(err => {
+        dispatch({ type: actionTypes.PEOPLE_GET_REJECTED, error: err });
+        console.log(err);
+      });
+  };
 };
 
-export const getPerson = (id) => {
-    const url = `${API_ROOT}/people/${id}`;
-
-    axios.get(url).then(response => {
-        console.log("Got person w/ id:", id, " ", JSON.stringify(response));
-        
-    }).catch(err => {
+export const getPerson = url => {
+  return (dispatch = () => {
+    // const url = `${API_ROOT}/people/${id}`;
+    dispatch({ type: actionTypes.PROFILE_GET_PENDING });
+    axios
+      .get(url)
+      .then(response => {
+        dispatch({ type: actionTypes.PROFILE_GET_RESOLVED, payload: response });
+        console.log("Got person w/ url:", url, " ", JSON.stringify(response));
+      })
+      .catch(err => {
+        dispatch({ type: actionTypes.PROFILE_GET_REJECTED, error: err });
         console.log(err);
-    });
-}
-
+      });
+  });
+};
