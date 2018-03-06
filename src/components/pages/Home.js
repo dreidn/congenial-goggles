@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import ReactTable from "react-table";
 import _ from "lodash";
 
-import { getPeople } from "../../actions/peopleActions";
+import { getPeople, getResourceId } from "../../actions/peopleActions";
 
 const mapStateToProps = state => {
   return {
@@ -36,14 +36,14 @@ class Home extends Component {
       </tr>
     );
     const peopleRows = _.map(data, p => {
+      const { id, url } = p;
       return (
         <tr key={key++}>
           <td>
             <Link
               to={{
-                pathname: "/profile",
-                search: `?id=${p.name}`,
-                state: { profileURL: p.url, profile: p }
+                pathname: `/profile/${id}`
+                // state: { profileURL: url, profile: p }
               }}
             >
               {p.name}

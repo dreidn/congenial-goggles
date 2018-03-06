@@ -27,7 +27,7 @@ ReactDOM.render(
           <div>
             <div className="innermax">
               <Route exact path="/" component={Home} />
-              <Route path="/profile" component={Profile} />
+              <Route path="/profile/:id(\d+)" component={Profile} />
             </div>
           </div>
         </Route>
