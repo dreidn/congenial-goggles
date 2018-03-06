@@ -1,8 +1,8 @@
 import { ERROR, LOADING, SUCCESS, NOT_STARTED } from "./statusTypes";
 import {
-  PEOPLE_GET_PENDING,
-  PEOPLE_GET_RESOLVED,
-  PEOPLE_GET_REJECTED
+  PROFILE_GET_PENDING,
+  PROFILE_GET_RESOLVED,
+  PROFILE_GET_REJECTED
 } from "../actions/types";
 
 const initialState = {
@@ -13,7 +13,7 @@ const initialState = {
   error: {}
 };
 
-const peopleReducer = function(state = initialState, action) {
+const profileReducer = function(state = initialState, action) {
   const { type, payload } = action;
 
   switch (type) {

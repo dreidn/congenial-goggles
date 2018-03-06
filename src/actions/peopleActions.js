@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import * as actionTypes from "./";
+import * as actionTypes from "./types";
 
 const API_ROOT = "https://swapi.co/api";
 
@@ -28,19 +28,27 @@ export const getPeople = () => {
   };
 };
 
-export const getPerson = url => {
-  return (dispatch = () => {
-    // const url = `${API_ROOT}/people/${id}`;
+export const getProfile = url => {
+  return dispatch => {
     dispatch({ type: actionTypes.PROFILE_GET_PENDING });
-    axios
-      .get(url)
+    axios({
+      method: "get",
+      responseType: "json",
+      url
+    })
       .then(response => {
-        dispatch({ type: actionTypes.PROFILE_GET_RESOLVED, payload: response });
-        console.log("Got person w/ url:", url, " ", JSON.stringify(response));
+        dispatch({
+          type: actionTypes.PROFILE_GET_RESOLVED,
+          payload: response.data
+        });
       })
       .catch(err => {
         dispatch({ type: actionTypes.PROFILE_GET_REJECTED, error: err });
         console.log(err);
       });
-  });
+  };
+};
+
+export const getSpaceship = url => {
+  return dispatch => {};
 };

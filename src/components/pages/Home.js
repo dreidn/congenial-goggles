@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { push } from "react-router";
+import { Link } from "react-router-dom";
 import ReactTable from "react-table";
 import _ from "lodash";
 
@@ -39,7 +39,15 @@ class Home extends Component {
       return (
         <tr key={key++}>
           <td>
-            <a href={`/${p.name}`}>{p.name}</a>
+            <Link
+              to={{
+                pathname: "/profile",
+                search: `?id=${p.name}`,
+                state: { profileURL: p.url, profile: p }
+              }}
+            >
+              {p.name}
+            </Link>
           </td>
           <td>{p.birth_year}</td>
         </tr>
