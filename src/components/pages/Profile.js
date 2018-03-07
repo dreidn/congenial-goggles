@@ -3,14 +3,21 @@ import { connect } from "react-redux";
 import _ from "lodash";
 import ReactTable from "react-table";
 import "style-loader!css-loader!react-table/react-table.css";
+import {
+  ERROR,
+  LOADING,
+  SUCCESS,
+  NOT_STARTED
+} from "../../reducers/statusTypes";
 
 import FilterTable from "../FilterTable";
 import { getProfileByID, getStarship } from "../../actions/peopleActions";
 
 const mapStateToProps = state => {
   return {
+    status: state.profile.status,
     profile: state.profile.data.profile,
-    starships: state.starships.data.starships
+    starships: state.profile.data.starships
   };
 };
 
@@ -34,12 +41,22 @@ class Profile extends Component {
 
   componentDidMount() {
     this.props.getProfile(this.props.match.params.id).then(res => {
+      console.log(res);
       _.forEach(res.payload.starships, this.props.getStarship);
     });
   }
 
+  componentDidUpdate(prevProps) {
+    if (prevProps.match.params.id != this.props.match.params.id) {
+      this.props.getProfile(this.props.match.params.id).then(res => {
+        console.log(res);
+        _.forEach(res.payload.starships, this.props.getStarship);
+      });
+    }
+  }
+
   renderProfileInfo() {
-    if (this.props.profile) {
+    if (this.props.status === SUCCESS) {
       const {
         name,
         height,
@@ -69,8 +86,8 @@ class Profile extends Component {
   }
 
   renderStarshipTable() {
-    const { profile: { name }, starships } = this.props;
-    if (starships !== undefined && starships.length > 0) {
+    const { status, starships } = this.props;
+    if (status === SUCCESS && starships.length > 0) {
       const data = _.map(starships, ship => {
         const {
           name,
@@ -109,7 +126,7 @@ class Profile extends Component {
           />
         </div>
       );
-    } else if (name) {
+    } else if (status === SUCCESS) {
       return <div>{name} has no starships!</div>;
     } else {
       return undefined;
@@ -117,13 +134,24 @@ class Profile extends Component {
   }
 
   render() {
+    const { status } = this.props;
+
+    const content =
+      status === LOADING ? (
+        <div>loading...</div>
+      ) : (
+        <div>
+          {this.renderProfileInfo()}
+          <h3>Starships</h3> {this.renderStarshipTable()}
+        </div>
+      );
+
     return (
       <div>
         <div className="innermax padding-20">
           <div className="row">
             <div className="col-lg-6 col-lg-offset-3 col-md-8 col-md-offset-2 padding-top-20">
-              {this.renderProfileInfo()}
-              <h3>Starships</h3> {this.renderStarshipTable()}
+              {content}
             </div>
           </div>
         </div>

@@ -115,6 +115,7 @@ export const getStarship = url => {
       url
     })
       .then(response => {
+        console.log("got starship");
         dispatch({
           type: actionTypes.STARSHIP_GET_RESOLVED,
           payload: { ...response.data, id: getResourceId(response.data.url) }
