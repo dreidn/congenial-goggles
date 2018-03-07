@@ -43,6 +43,7 @@ class Profile extends Component {
       });
     }
   }
+
   renderProfileInfo() {
     if (this.props.profile) {
       const {
