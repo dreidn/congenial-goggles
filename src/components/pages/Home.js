@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import ReactTable from "react-table";
+import "style-loader!css-loader!react-table/react-table.css";
+
 import _ from "lodash";
 
 import { getPeople, getResourceId } from "../../actions/peopleActions";
@@ -27,45 +29,51 @@ class Home extends Component {
 
   render() {
     const data = this.props.people || [];
-    let key = 0;
 
-    const headerRows = (
-      <tr key={key++}>
-        <td>Name</td>
-        <td>Birth Year</td>
-      </tr>
-    );
-    const peopleRows = _.map(data, p => {
-      const { id, url } = p;
-      return (
-        <tr key={key++}>
-          <td>
-            <Link
-              to={{
-                pathname: `/profile/${id}`
-                // state: { profileURL: url, profile: p }
-              }}
-            >
-              {p.name}
-            </Link>
-          </td>
-          <td>{p.birth_year}</td>
-        </tr>
-      );
+    const rt_data = _.map(data, p => {
+      const { id, url, name, birth_year } = p;
+      return {
+        filter: name,
+        birth_year,
+        name: (
+          <Link
+            to={{
+              pathname: `/profile/${id}`
+            }}
+          >
+            {name}
+          </Link>
+        )
+      };
     });
+
+    const columns = [
+      { Header: "Name", accessor: "name" },
+      { Header: "Birth Year", accessor: "birth_year" },
+      { accessor: "filter", show: false }
+    ];
 
     return (
       <div>
         <div className="innermax padding-20">
           <div className="row">
             <div className="col-lg-6 col-lg-offset-3 col-md-8 col-md-offset-2 padding-top-20">
-              <p>Welcome to the home page, everyone can see this!</p>
-              <table>
-                <tbody>
-                  {headerRows}
-                  {peopleRows}
-                </tbody>
-              </table>
+              <ReactTable
+                data={rt_data}
+                columns={columns}
+                defaultPageSize={10}
+                showPagination={false}
+                filterable={true}
+                defaultFilterMethod={(filter, row) => {
+                  return _.startsWith(
+                    row.filter.toLowerCase(),
+                    filter.value.toLowerCase()
+                  );
+                }}
+                onPageChange={() => {
+                  console.log("PAGE CHANGE!");
+                }}
+              />
             </div>
           </div>
         </div>

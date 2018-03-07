@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
+import ReactTable from "react-table";
+import "style-loader!css-loader!react-table/react-table.css";
 
 import { getProfileByID, getStarship } from "../../actions/peopleActions";
 
@@ -78,41 +80,43 @@ class Profile extends Component {
     const { starships } = this.props;
     console.log("render starships? ", starships);
     if (starships !== undefined && starships.length > 0) {
-      let key = 0;
-
-      const headerRows = (
-        <tr key={key++}>
-          <td>Name</td>
-          <td>Model</td>
-          <td>Length</td>
-          <td>Cost in Credits</td>
-          <td>Crew</td>
-          <td>Hyperdrive rating</td>
-        </tr>
-      );
-
-      const peopleRows = _.map(starships, ship => {
-        return (
-          <tr key={key++}>
-            <td>{ship.name}</td>
-            <td>{ship.model}</td>
-            <td>{ship.length}</td>
-            <td>{ship.cost_in_credits}</td>
-            <td>{ship.crew}</td>
-            <td>{ship.hyperdrive_rating}</td>
-          </tr>
-        );
+      const data = _.map(starships, ship => {
+        const {
+          name,
+          model,
+          length,
+          cost_in_credits,
+          crew,
+          hyperdrive_rating
+        } = ship;
+        return {
+          name,
+          model,
+          length,
+          cost_in_credits,
+          crew,
+          hyperdrive_rating
+        };
       });
+
+      const columns = [
+        { Header: "Name", accessor: "name" },
+        { Header: "Model", accessor: "model" },
+        { Header: "Length", accessor: "length" },
+        { Header: "Cost in Credits", accessor: "cost_in_credits" },
+        { Header: "Crew", accessor: "crew" },
+        { Header: "Hyperdrive Rating", accessor: "hyperdrive_rating" }
+      ];
 
       return (
         <div>
-          <h2>Starships</h2>
-          <table>
-            <tbody>
-              {headerRows}
-              {peopleRows}
-            </tbody>
-          </table>
+          <h3>Starships</h3>{" "}
+          <ReactTable
+            data={data}
+            columns={columns}
+            showPagination={false}
+            defaultPageSize={data.length + 4}
+          />
         </div>
       );
     } else {

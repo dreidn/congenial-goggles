@@ -31,9 +31,13 @@ export const getPeople = () => {
 
         return dispatch({
           type: actionTypes.PEOPLE_GET_RESOLVED,
-          payload: _.map(response.data.results, p => {
-            return { ...p, id: getResourceId(p.url) };
-          })
+          payload: {
+            data: _.map(response.data.results, p => {
+              return { ...p, id: getResourceId(p.url) };
+            }),
+            next: response.data.next,
+            previous: response.data.previous
+          }
         });
       })
       .catch(err => {
