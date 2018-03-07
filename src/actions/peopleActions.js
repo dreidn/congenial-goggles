@@ -15,9 +15,9 @@ const getResourceId = url => {
   return _.isNumber(id) ? id : undefined;
 };
 
-export const getPeople = () => {
+export const getPeople = url => {
   return dispatch => {
-    const url = `${API_ROOT}/people/`;
+    const url = url || `${API_ROOT}/people/`;
 
     dispatch({ type: actionTypes.PEOPLE_GET_PENDING });
 
@@ -26,18 +26,12 @@ export const getPeople = () => {
       responseType: "json",
       url
     })
-      .then(response => {
-        console.log("Got people data,", JSON.stringify(response));
-
+      .then(({ data: { results, next, previous, count } }) => {
         return dispatch({
           type: actionTypes.PEOPLE_GET_RESOLVED,
-          payload: {
-            data: _.map(response.data.results, p => {
-              return { ...p, id: getResourceId(p.url) };
-            }),
-            next: response.data.next,
-            previous: response.data.previous
-          }
+          payload: _.map(results, p => {
+            return { ...p, id: getResourceId(p.url) };
+          })
         });
       })
       .catch(err => {
@@ -45,6 +39,43 @@ export const getPeople = () => {
 
         return dispatch({ type: actionTypes.PEOPLE_GET_REJECTED, error: err });
       });
+  };
+};
+
+export const getAllPeople = () => {
+  return dispatch => {
+    const root = `${API_ROOT}/people/`;
+    let people = [];
+    let c = 0;
+    dispatch({ type: actionTypes.PEOPLE_GET_PENDING });
+    const _getPerson = url => {
+      axios({
+        method: "get",
+        responseType: "json",
+        url
+      })
+        .then(({ data: { results, next, count } }) => {
+          console.log(`Got page ${++c}`);
+          people = people.concat(
+            _.map(results, p => {
+              return { ...p, id: getResourceId(p.url) };
+            })
+          );
+          if (next != null) _getPerson(next);
+          else {
+            console.log(people[0]);
+            dispatch({
+              type: actionTypes.PEOPLE_GET_RESOLVED,
+              payload: people
+            });
+          }
+        })
+        .catch(err => {
+          console.log(err);
+          dispatch({ type: actionTypes.PEOPLE_GET_REJECTED, error: err });
+        });
+    };
+    _getPerson(root);
   };
 };
 
@@ -77,8 +108,6 @@ export const getProfile = url => {
 
 export const getStarship = url => {
   return dispatch => {
-    console.log("getting starship: ", url);
-
     dispatch({ type: actionTypes.STARSHIP_GET_PENDING });
     return axios({
       method: "get",
@@ -86,12 +115,10 @@ export const getStarship = url => {
       url
     })
       .then(response => {
-        console.log("got starship", response);
         dispatch({
           type: actionTypes.STARSHIP_GET_RESOLVED,
           payload: { ...response.data, id: getResourceId(response.data.url) }
         });
-        console.log("wat");
       })
       .catch(err => {
         console.log(err);

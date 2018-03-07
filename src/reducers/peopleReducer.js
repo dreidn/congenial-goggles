@@ -7,9 +7,7 @@ import {
 
 const initialState = {
   data: {
-    people: [],
-    next: null,
-    previous: null
+    people: []
   },
   status: NOT_STARTED,
   error: {}
@@ -29,9 +27,7 @@ const peopleReducer = function(state = initialState, action) {
         status: SUCCESS,
         data: {
           ...state.data,
-          people: payload.data,
-          next: payload.next,
-          previous: payload.previous
+          people: payload
         }
       };
     }

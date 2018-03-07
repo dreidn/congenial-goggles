@@ -5,6 +5,8 @@ import {
   STARSHIP_GET_REJECTED
 } from "../actions/types";
 
+import _ from "lodash";
+
 const initialState = {
   data: {
     starships: []
@@ -25,7 +27,7 @@ const starshipReducer = function(state = initialState, action) {
       return {
         ...state,
         data: {
-          starships: state.data.starships.concat([payload])
+          starships: [...state.data.starships, payload]
         },
         status: SUCCESS
       };

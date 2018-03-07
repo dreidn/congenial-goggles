@@ -3,77 +3,106 @@ import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import ReactTable from "react-table";
 import "style-loader!css-loader!react-table/react-table.css";
-
 import _ from "lodash";
 
-import { getPeople, getResourceId } from "../../actions/peopleActions";
+import FilterTable from "../FilterTable";
+import {
+  getPeople,
+  getAllPeople,
+  getResourceId
+} from "../../actions/peopleActions";
+import {
+  ERROR,
+  LOADING,
+  SUCCESS,
+  NOT_STARTED
+} from "../../reducers/statusTypes";
 
 const mapStateToProps = state => {
   return {
-    people: state.people.data.people
+    people: state.people.data.people,
+    status: state.people.status
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
     getPeople: () => {
-      dispatch(getPeople());
+      dispatch(getAllPeople());
     }
   };
 };
 
 class Home extends Component {
-  componentDidMount() {
-    this.props.getPeople();
+  constructor(props) {
+    super(props);
+    this.renderTable = this.renderTable.bind(this);
   }
 
-  render() {
-    const data = this.props.people || [];
+  componentDidMount() {
+    if (this.props.status === NOT_STARTED) this.props.getPeople();
+  }
 
-    const rt_data = _.map(data, p => {
+  renderTable() {
+    const { people, status } = this.props;
+    if (status === ERROR) {
+      return undefined;
+    }
+    const data = _.map(this.props.people || [], p => {
       const { id, url, name, birth_year } = p;
       return {
-        filter: name,
         birth_year,
-        name: (
-          <Link
-            to={{
-              pathname: `/profile/${id}`
-            }}
-          >
-            {name}
-          </Link>
-        )
+        name,
+        id
       };
     });
 
     const columns = [
-      { Header: "Name", accessor: "name" },
-      { Header: "Birth Year", accessor: "birth_year" },
-      { accessor: "filter", show: false }
+      {
+        Header: "Name",
+        accessor: "name",
+        Cell: ({ original }) => (
+          <Link
+            to={{
+              pathname: `/profile/${original.id}`
+            }}
+          >
+            {original.name}
+          </Link>
+        )
+      },
+      { Header: "Birth Year", accessor: "birth_year", filterable: false }
     ];
+
+    return (
+      <ReactTable
+        noDataText={""}
+        loading={status === LOADING}
+        data={data}
+        columns={columns}
+        showPagination={false}
+        filterable={true}
+        minRows={data.length}
+        defaultFilterMethod={(filter, row) => {
+          const id = filter.pivotId || filter.id;
+          return _.startsWith(
+            row[id].toLowerCase(),
+            filter.value.toLowerCase()
+          );
+        }}
+      />
+    );
+  }
+
+  render() {
+    const { people, next, previous, count } = this.props;
 
     return (
       <div>
         <div className="innermax padding-20">
           <div className="row">
             <div className="col-lg-6 col-lg-offset-3 col-md-8 col-md-offset-2 padding-top-20">
-              <ReactTable
-                data={rt_data}
-                columns={columns}
-                defaultPageSize={10}
-                showPagination={false}
-                filterable={true}
-                defaultFilterMethod={(filter, row) => {
-                  return _.startsWith(
-                    row.filter.toLowerCase(),
-                    filter.value.toLowerCase()
-                  );
-                }}
-                onPageChange={() => {
-                  console.log("PAGE CHANGE!");
-                }}
-              />
+              {this.renderTable()}
             </div>
           </div>
         </div>

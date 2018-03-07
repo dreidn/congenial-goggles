@@ -4,11 +4,12 @@ import _ from "lodash";
 import ReactTable from "react-table";
 import "style-loader!css-loader!react-table/react-table.css";
 
+import FilterTable from "../FilterTable";
 import { getProfileByID, getStarship } from "../../actions/peopleActions";
 
 const mapStateToProps = state => {
   return {
-    profile: state.profile.data.profile, // _.find(state.people.data.people, person => person.id == state.match)//state.profile.data.profile,
+    profile: state.profile.data.profile,
     starships: state.starships.data.starships
   };
 };
@@ -19,7 +20,7 @@ const mapDispatchToProps = dispatch => {
       return dispatch(getProfileByID(id));
     },
     getStarship: url => {
-      dispatch(getStarship(url));
+      return dispatch(getStarship(url));
     }
   };
 };
@@ -32,18 +33,9 @@ class Profile extends Component {
   }
 
   componentDidMount() {
-    this.props.getProfile(this.props.match.params.id);
-  }
-
-  componentDidUpdate() {
-    if (
-      this.props.profile.starships.length > 0 &&
-      this.props.starships.length <= 0
-    ) {
-      _.forEach(this.props.profile.starships, shipURL => {
-        this.props.getStarship(shipURL);
-      });
-    }
+    this.props.getProfile(this.props.match.params.id).then(res => {
+      _.forEach(res.payload.starships, this.props.getStarship);
+    });
   }
 
   renderProfileInfo() {
@@ -77,8 +69,7 @@ class Profile extends Component {
   }
 
   renderStarshipTable() {
-    const { starships } = this.props;
-    console.log("render starships? ", starships);
+    const { profile: { name }, starships } = this.props;
     if (starships !== undefined && starships.length > 0) {
       const data = _.map(starships, ship => {
         const {
@@ -110,15 +101,16 @@ class Profile extends Component {
 
       return (
         <div>
-          <h3>Starships</h3>{" "}
           <ReactTable
             data={data}
             columns={columns}
+            minRows={data.length}
             showPagination={false}
-            defaultPageSize={data.length + 4}
           />
         </div>
       );
+    } else if (name) {
+      return <div>{name} has no starships!</div>;
     } else {
       return undefined;
     }
@@ -131,7 +123,7 @@ class Profile extends Component {
           <div className="row">
             <div className="col-lg-6 col-lg-offset-3 col-md-8 col-md-offset-2 padding-top-20">
               {this.renderProfileInfo()}
-              {this.renderStarshipTable()}
+              <h3>Starships</h3> {this.renderStarshipTable()}
             </div>
           </div>
         </div>
