@@ -15,7 +15,6 @@ const initialState = {
 
 const peopleReducer = function(state = initialState, action) {
   const { type, payload } = action;
-
   switch (type) {
     case PEOPLE_GET_PENDING: {
       return { ...state, status: LOADING };
@@ -33,7 +32,7 @@ const peopleReducer = function(state = initialState, action) {
     }
 
     case PEOPLE_GET_REJECTED: {
-      return { ...state, status: ERROR };
+      return { ...state, status: ERROR, error: payload };
     }
 
     default: {

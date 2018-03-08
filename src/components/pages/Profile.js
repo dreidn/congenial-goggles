@@ -2,7 +2,8 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
 import ReactTable from "react-table";
-import "style-loader!css-loader!react-table/react-table.css";
+
+import { getProfileByID, getStarship } from "../../actions/peopleActions";
 import {
   ERROR,
   LOADING,
@@ -10,12 +11,10 @@ import {
   NOT_STARTED
 } from "../../reducers/statusTypes";
 
-import FilterTable from "../FilterTable";
-import { getProfileByID, getStarship } from "../../actions/peopleActions";
-
 const mapStateToProps = state => {
   return {
     status: state.profile.status,
+    error: state.profile.error,
     profile: state.profile.data.profile,
     starships: state.profile.data.starships
   };
@@ -24,10 +23,11 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     getProfile: id => {
-      return dispatch(getProfileByID(id));
-    },
-    getStarship: url => {
-      return dispatch(getStarship(url));
+      return dispatch(getProfileByID(id)).then(res => {
+        _.forEach(res.payload.starships, shipURL => {
+          dispatch(getStarship(shipURL));
+        });
+      });
     }
   };
 };
@@ -39,86 +39,117 @@ class Profile extends Component {
     this.renderProfileInfo = this.renderProfileInfo.bind(this);
   }
 
+  /*
+    Get profile data on mount
+  */
   componentDidMount() {
-    this.props.getProfile(this.props.match.params.id).then(res => {
-      console.log(res);
-      _.forEach(res.payload.starships, this.props.getStarship);
-    });
+    this.props.getProfile(this.props.match.params.id);
   }
 
+  /*
+    Fetch new profile and update if the id url parameter changed.
+  */
   componentDidUpdate(prevProps) {
     if (prevProps.match.params.id != this.props.match.params.id) {
-      this.props.getProfile(this.props.match.params.id).then(res => {
-        console.log(res);
-        _.forEach(res.payload.starships, this.props.getStarship);
-      });
+      this.props.getProfile(this.props.match.params.id);
     }
   }
 
+  /*
+    Render profile info if profile status is SUCCESS, otherwise return undefined.
+  */
   renderProfileInfo() {
-    if (this.props.status === SUCCESS) {
-      const {
-        name,
-        height,
-        mass,
-        hair_color,
-        blond,
-        eye_color,
-        birth_year,
-        gender
-      } = this.props.profile;
+    const {
+      name,
+      height,
+      mass,
+      hair_color,
+      blond,
+      eye_color,
+      birth_year,
+      gender
+    } = this.props.profile;
 
-      return (
-        <div>
-          <h1>{name}</h1>
-          <div>Gender: {gender}</div>
-          <div>Birth year: {birth_year}</div>
-          <div>Height: {height}</div>
-          <div>Mass: {mass}</div>
-          <div>Hair color: {hair_color}</div>
-          <div>Eye color: {eye_color}</div>
-          <br />
+    return (
+      <div>
+        <h1 className="header">{name}</h1>
+        <div className="profileBox">
+          <div className="profileRow flex">
+            <span>Gender:</span>
+            <span>{gender}</span>
+          </div>
+          <div className="profileRow flex">
+            <span>Birth Year:</span>
+            <span>{birth_year}</span>
+          </div>
+          <div className="profileRow flex">
+            <span>Height:</span>
+            <span>{height}</span>
+          </div>
+          <div className="profileRow flex">
+            <span>Mass:</span>
+            <span>{mass}</span>
+          </div>
+          <div className="profileRow flex">
+            <span>Hair Color:</span>
+            <span>{hair_color}</span>
+          </div>
+          <div className="profileRow flex">
+            <span>Eye Color:</span>
+            <span>{eye_color}</span>
+          </div>
         </div>
-      );
-    } else {
-      return undefined;
-    }
+        <br />
+      </div>
+    );
   }
 
+  /*
+  Render table using starship data.
+  */
   renderStarshipTable() {
-    const { status, starships } = this.props;
-    if (status === SUCCESS && starships.length > 0) {
-      const data = _.map(starships, ship => {
-        const {
-          name,
-          model,
-          length,
-          cost_in_credits,
-          crew,
-          hyperdrive_rating
-        } = ship;
-        return {
-          name,
-          model,
-          length,
-          cost_in_credits,
-          crew,
-          hyperdrive_rating
-        };
-      });
+    const { status, starships, profile } = this.props;
+    const tableIsLoading =
+      status.profile === SUCCESS &&
+      this.props.profile.starships.length > starships.length;
+
+    if (tableIsLoading || starships.length > 0) {
+      const data = _.map(
+        starships,
+        ({ name, model, length, cost_in_credits, crew, hyperdrive_rating }) => {
+          return {
+            name,
+            model,
+            length,
+            cost_in_credits,
+            crew,
+            hyperdrive_rating
+          };
+        }
+      );
 
       const columns = [
         { Header: "Name", accessor: "name" },
         { Header: "Model", accessor: "model" },
-        { Header: "Length", accessor: "length" },
+        { Header: "Length", accessor: "length", maxWidth: 100 },
         { Header: "Cost in Credits", accessor: "cost_in_credits" },
-        { Header: "Crew", accessor: "crew" },
-        { Header: "Hyperdrive Rating", accessor: "hyperdrive_rating" }
+        { Header: "Crew", accessor: "crew", maxWidth: 100 },
+        {
+          Header: "Hyperdrive Rating",
+          accessor: "hyperdrive_rating",
+          maxWidth: 180
+        }
       ];
 
       return (
         <div>
           <ReactTable
+            loading={tableIsLoading && this.props.status.starships != ERROR}
+            noDataText={
+              this.props.status.starships != ERROR
+                ? ""
+                : "Error loading starship data"
+            }
             data={data}
             columns={columns}
             minRows={data.length}
@@ -126,25 +157,32 @@ class Profile extends Component {
           />
         </div>
       );
-    } else if (status === SUCCESS) {
-      return <div>{name} has no starships!</div>;
-    } else {
-      return undefined;
+    } else if (status.profile === SUCCESS && profile.starships.length === 0) {
+      return <div>{this.props.profile.name} has no starships!</div>;
     }
   }
 
+  /*
+    Display a messsage while status is LOADING, otherwise attempt to render content
+  */
   render() {
     const { status } = this.props;
 
-    const content =
-      status === LOADING ? (
-        <div>loading...</div>
-      ) : (
+    let content;
+    if (status.profile === NOT_STARTED) {
+      content = undefined;
+    } else if (status.profile === LOADING) {
+      content = <div>Loading...</div>;
+    } else if (status.profile === ERROR) {
+      content = <div>Error: could not fetch data</div>;
+    } else {
+      content = (
         <div>
           {this.renderProfileInfo()}
-          <h3>Starships</h3> {this.renderStarshipTable()}
+          <h2 className="header">Starships</h2> {this.renderStarshipTable()}
         </div>
       );
+    }
 
     return (
       <div>

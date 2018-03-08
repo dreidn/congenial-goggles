@@ -6,6 +6,10 @@ import * as actionTypes from "./types";
 
 const API_ROOT = "https://swapi.co/api";
 
+/* 
+  Attempts to parse a resource ID from it's URL. Returns undefined if unable
+  to find an ID.
+*/
 const getResourceId = url => {
   const u = URL.parse(url);
   if (u.hostname == null || u.pathname == null) {
@@ -15,6 +19,9 @@ const getResourceId = url => {
   return _.isNumber(id) ? id : undefined;
 };
 
+/*
+  Gets the first page of people from the people endpoint.
+*/
 export const getPeople = url => {
   return dispatch => {
     const url = url || `${API_ROOT}/people/`;
@@ -35,18 +42,22 @@ export const getPeople = url => {
         });
       })
       .catch(err => {
-        console.log(err);
-
-        return dispatch({ type: actionTypes.PEOPLE_GET_REJECTED, error: err });
+        return dispatch({
+          type: actionTypes.PEOPLE_GET_REJECTED,
+          payload: err
+        });
       });
   };
 };
 
+/*
+  Gets all of the people from the people endpoint. Paginates using the 'next'
+  URL in each response.
+*/
 export const getAllPeople = () => {
   return dispatch => {
     const root = `${API_ROOT}/people/`;
     let people = [];
-    let c = 0;
     dispatch({ type: actionTypes.PEOPLE_GET_PENDING });
     const _getPerson = url => {
       axios({
@@ -55,35 +66,41 @@ export const getAllPeople = () => {
         url
       })
         .then(({ data: { results, next, count } }) => {
-          console.log(`Got page ${++c}`);
           people = people.concat(
             _.map(results, p => {
               return { ...p, id: getResourceId(p.url) };
             })
           );
-          if (next != null) _getPerson(next);
+          if (next != null && people.length < count) _getPerson(next);
           else {
-            console.log(people[0]);
-            dispatch({
+            return dispatch({
               type: actionTypes.PEOPLE_GET_RESOLVED,
               payload: people
             });
           }
         })
         .catch(err => {
-          console.log(err);
-          dispatch({ type: actionTypes.PEOPLE_GET_REJECTED, error: err });
+          return dispatch({
+            type: actionTypes.PEOPLE_GET_REJECTED,
+            payload: err
+          });
         });
     };
     _getPerson(root);
   };
 };
 
+/*
+  Gets profile by ID
+*/
 export const getProfileByID = id => {
   const url = `${API_ROOT}/people/${id}/`;
   return getProfile(url);
 };
 
+/*
+  Get profile from people endpoint using url
+*/
 export const getProfile = url => {
   return dispatch => {
     dispatch({ type: actionTypes.PROFILE_GET_PENDING });
@@ -100,12 +117,17 @@ export const getProfile = url => {
         });
       })
       .catch(err => {
-        return dispatch({ type: actionTypes.PROFILE_GET_REJECTED, error: err });
-        console.log(err);
+        return dispatch({
+          type: actionTypes.PROFILE_GET_REJECTED,
+          payload: err
+        });
       });
   };
 };
 
+/*
+  Gets a starship resource using it's URL.
+*/
 export const getStarship = url => {
   return dispatch => {
     dispatch({ type: actionTypes.STARSHIP_GET_PENDING });
@@ -115,18 +137,15 @@ export const getStarship = url => {
       url
     })
       .then(response => {
-        console.log("got starship");
-        dispatch({
+        return dispatch({
           type: actionTypes.STARSHIP_GET_RESOLVED,
           payload: { ...response.data, id: getResourceId(response.data.url) }
         });
       })
       .catch(err => {
-        console.log(err);
-
         return dispatch({
           type: actionTypes.STARSHIP_GET_REJECTED,
-          error: err
+          payload: err
         });
       });
   };

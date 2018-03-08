@@ -9,7 +9,8 @@ import { composeWithDevTools } from "redux-devtools-extension/developmentOnly";
 import { Route } from "react-router-dom";
 import rootReducer from "./reducers";
 import { Home, Profile } from "./components/pages";
-// import './style/main.scss';
+import "./style/main.scss";
+import "style-loader!css-loader!react-table/react-table.css";
 
 const history = createHistory();
 
@@ -25,10 +26,8 @@ ReactDOM.render(
       <div className="flex flex-site flex-col">
         <Route path="/">
           <div>
-            <div className="innermax">
-              <Route exact path="/" component={Home} />
-              <Route path="/profile/:id(\d+)" component={Profile} />
-            </div>
+            <Route exact path="/" component={Home} />
+            <Route path="/profile/:id(\d+)" component={Profile} />
           </div>
         </Route>
       </div>

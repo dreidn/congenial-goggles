@@ -2,10 +2,8 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import ReactTable from "react-table";
-import "style-loader!css-loader!react-table/react-table.css";
 import _ from "lodash";
 
-import FilterTable from "../FilterTable";
 import {
   getPeople,
   getAllPeople,
@@ -39,17 +37,21 @@ class Home extends Component {
     this.renderTable = this.renderTable.bind(this);
   }
 
+  /*Fetch people data upon starting, use already fetched data if it exists*/
   componentDidMount() {
     if (this.props.status === NOT_STARTED) this.props.getPeople();
   }
 
+  /*
+    Build and return react table component using people data. Returns undefined if status is NOT_STARTED
+    or ERROR.
+  */
   renderTable() {
     const { people, status } = this.props;
-    if (status === ERROR) {
-      return undefined;
+    if (status === NOT_STARTED || status === ERROR) {
+      return;
     }
-    const data = _.map(this.props.people || [], p => {
-      const { id, url, name, birth_year } = p;
+    const data = _.map(this.props.people || [], ({ id, name, birth_year }) => {
       return {
         birth_year,
         name,
@@ -80,9 +82,10 @@ class Home extends Component {
         loading={status === LOADING}
         data={data}
         columns={columns}
-        showPagination={false}
         filterable={true}
-        minRows={data.length}
+        showPagination={false}
+        minRows={10}
+        pageSize={data.length}
         defaultFilterMethod={(filter, row) => {
           const id = filter.pivotId || filter.id;
           return _.startsWith(
@@ -95,14 +98,22 @@ class Home extends Component {
   }
 
   render() {
-    const { people, next, previous, count } = this.props;
+    const { status } = this.props;
+    let content;
+    if (status === NOT_STARTED) {
+      content = undefined;
+    } else if (status === ERROR) {
+      content = <div>Error: could not fetch data</div>;
+    } else {
+      content = this.renderTable();
+    }
 
     return (
       <div>
         <div className="innermax padding-20">
           <div className="row">
             <div className="col-lg-6 col-lg-offset-3 col-md-8 col-md-offset-2 padding-top-20">
-              {this.renderTable()}
+              {content}
             </div>
           </div>
         </div>

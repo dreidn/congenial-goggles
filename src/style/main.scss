@@ -1,0 +1,36 @@
+$foreground-color: grey;
+$background-color: black;
+$header-font-color: yellow;
+$content-font-color: white;
+
+html {
+  background-color: $background-color;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: $content-font-color;
+}
+
+.header {
+  color: $header-font-color;
+}
+
+.profileBox {
+  min-width: 180px;
+  max-width: 250px;
+  overflow-x: visible;
+}
+.profileRow {
+  display: flex;
+  min-width: 120px;
+  justify-content: space-between;
+  margin-bottom: 7px;
+}
+
+.innermax {
+  width: 100%;
+  max-width: 1326px;
+  margin: auto;
+  background-color: $foreground-color;
+  padding: 0 15px 20px 15px;
+  border: 1px solid $foreground-color;
+  border-radius: 3px;
+}
